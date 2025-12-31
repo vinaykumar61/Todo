@@ -1,0 +1,262 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Task List</title>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="{% static 'js/task_list.js' %}"></script>
+
+        <!-- Pagination CDN Link -->
+        <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <!-- Pagination CDN Link -->
+
+        <style>
+            :root {
+                --primary: #0d6efd;
+                --primary-hover: #0b5ed7;
+                --bg-body: #f8f9fa;
+                --text-main: #212529;
+                --text-muted: #6c757d;
+                --border-color: #dee2e6;
+                --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 1.5rem;
+                text-align: center;
+                color: #111;
+            }
+
+
+            button {
+                padding: 8px 14px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .btn-save {
+                background: #198754;
+                color: white;
+            }
+
+            .btn-back {
+                background: #6c757d;
+                color: white;
+            }
+
+            .btn-add {
+                background: green ;
+                color: white;
+            }
+
+        </style>
+
+        <!-- Ajax Pagination Table CSS -->
+        <style>
+            /* --- GREEN THEME VARIABLES --- */
+            :root {
+                --main-green: #008000;
+                /* Standard Green */
+                --dark-green: #004d00;
+                /* Darker green for text/borders */
+                --light-green-bg: #e6ffe6;
+                /* Very light green for hover/selection */
+                --bg-light: #e8f5e9;
+                /* Light green background for even rows */
+            }
+
+            body {
+                background: #f4f6f9;
+                font-family: "Segoe UI", sans-serif;
+                width:70%;
+                margin:auto;
+
+            }
+
+            /* Page Title */
+            .uw-page-title {
+                font-weight: 700;
+                color: var(--dark-green);
+                /* Set title color to dark green */
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--main-green);
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                border-radius: 6px;
+                border: 1px solid #ced4da;
+                padding: 6px 10px;
+                margin: 10px;
+            }
+
+            .dataTables_wrapper .dataTables_length select {
+                border-radius: 6px;
+                padding: 4px 8px;
+                margin: 10px;
+            }
+
+            /* Table Header Styling */
+            table.dataTable thead th {
+                background: var(--main-green) !important;
+                /* Set header background to green */
+                color: #fff;
+                white-space: nowrap;
+                border-color: var(--dark-green);
+                /* Darker border for contrast */
+            }
+
+            #tableAllied tbody tr:nth-child(even) {
+                background-color: var(--bg-light);
+            }
+
+            #tableAllied tbody tr:nth-child(odd) {
+                background-color: white;
+            }
+
+            #tableAllied tbody tr:hover {
+                background-color: #e0f2e0;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
+            .dataTables_info {
+                padding-top: 10px;
+                font-size: 14px;
+            }
+
+            /* Pagination Buttons Styling */
+            .dataTables_paginate .paginate_button {
+                border-radius: 6px !important;
+                margin: 2px;
+                border: 1px solid #ced4da !important;
+            }
+
+            /* Active/Current Pagination Button */
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                background: var(--main-green) !important;
+                /* Active button background */
+                border-color: var(--dark-green) !important;
+                color: white !important;
+            }
+
+            /* Input Focus (Search/Length) */
+            .dataTables_wrapper .dataTables_filter input:focus,
+            .dataTables_wrapper .dataTables_length select:focus {
+                border-color: var(--main-green) !important;
+                box-shadow: 0 0 0 0.2rem rgba(0, 128, 0, 0.25);
+            }
+
+            .card {
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+                margin-top: 20px;
+                padding: 15px;
+            }
+
+            .page-wrapper {
+                margin-top: 40px;
+                margin-bottom: 40px;
+            }
+
+            /* Page Title */
+            .pagination-title {
+                font-weight: 700;
+                color: var(--dark-green); /* Set title color to dark green */
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--main-green);
+            }
+            
+        </style>
+        <!-- Ajax Pagination Table CSS -->
+
+    </head>
+
+    <body>
+
+        <div class="page-wrapper">
+
+            <h2>Task Manager</h2>
+
+            <button class="btn btn-add" onclick="window.location.href='/add/'">+ Add Task</button>
+
+            <br><br>
+
+            <div class="card" style="box-shadow:0 0 10px #000;">
+                <div class="text-muted">
+                    <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="pagination-title">Task Information</h2>
+                    </div>
+                    </div>
+                </div>
+                <table id="tableAllied" class="display" style="width: 100%">
+                    {% csrf_token %}
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTable"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+
+
+        <!-- EDIT TASK MODAL -->
+        <div id="editModal" style="display:none; position:fixed; top:20%; left:35%; background:#fff; 
+            padding:20px; box-shadow:0 0 10px #000;">
+            <form id="editTaskForm" method="POST" onsubmit="return false">
+                <input type="text" id="edit_id" hidden>
+                {% csrf_token %}
+                <h1>Edit Task</h1>
+
+                <div class="form-group">
+                    <label for="edit_title" class="form-label">Task Title</label>
+                    <input type="text" id="edit_title" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_description" class="form-label">Description</label>
+                    <textarea id="edit_description" class="form-control"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_due_date" class="form-label">Due Date</label>
+                    <input type="date" id="edit_due_date" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_status" class="form-label">Status</label>
+                    <select id="edit_status" class="form-control">
+                        <option value=""> ---Select Status--- </option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <button onclick="updateTask()">Save</button>
+                <button onclick="closeModal()">Cancel</button>
+
+            </form>
+
+        </div>
+        <!-- EDIT TASK MODAL -->
+
+    </body>
+
+</html>

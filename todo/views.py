@@ -2,23 +2,16 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
 import MySQLdb
-import math
 
 
 def get_connection():
-    try:
-        return MySQLdb.connect(
-            host=settings.DATABASES['default']['HOST'],
-            user=settings.DATABASES['default']['USER'],
-            password=settings.DATABASES['default']['PASSWORD'],
-            database=settings.DATABASES['default']['NAME'],
-            charset='utf8'
-        )
-    except Exception as e:
-        return JsonResponse(
-            {'error': str(e)},
-            status=500
-        )
+    return MySQLdb.connect(
+        host=settings.DATABASES['default']['HOST'],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        database=settings.DATABASES['default']['NAME'],
+        charset='utf8'
+    )
 
 
 def task_list_page(request):
@@ -38,11 +31,6 @@ def api_get_tasks(request):
         start = int(request.GET.get("start", 0))      # OFFSET
         length = int(request.GET.get("length", 10))  # LIMIT
         search_value = request.GET.get("search[value]", "").strip()
-
-        print("draw",draw)
-        print("start",start)
-        print("length",length)
-        print("search_value",search_value)
 
         conn = get_connection()
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -115,11 +103,12 @@ def api_get_tasks(request):
     except Exception as e:
         print("Error:", e)
         return JsonResponse({
-            "draw": 1,
+            "draw": draw,
             "recordsTotal": 0,
             "recordsFiltered": 0,
-            "data": []
-        })
+            "data": [],
+            "error": str(e)
+        }, status=500)
 
 
 def api_create_task(request):
@@ -249,6 +238,9 @@ def api_update_task(request, task_id):
 
 def api_delete_task(request, task_id):
     try:
+        if request.method != 'POST':
+            return JsonResponse({'error': 'Invalid request'}, status=400)
+        
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM tasks WHERE id=%s", (task_id,))

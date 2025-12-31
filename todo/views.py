@@ -47,12 +47,26 @@ def api_get_tasks(request):
         conn = get_connection()
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
 
+        # ==============================
+        # 🔹 Search filter
+        # ==============================
         where = ""
         params = []
 
         if search_value:
-            where = "WHERE title LIKE %s OR description LIKE %s due_date LIKE %s OR status LIKE %"
-            params = [f"%{search_value}%", f"%{search_value}%", f"%{search_value}%", f"%{search_value}%"]
+            where = """
+                WHERE 
+                    title LIKE %s 
+                    OR description LIKE %s 
+                    OR due_date LIKE %s 
+                    OR status LIKE %s
+            """
+            params = [
+                f"%{search_value}%",
+                f"%{search_value}%",
+                f"%{search_value}%",
+                f"%{search_value}%"
+            ]
 
         # ==============================
         # 🔹 Total Records (without filter)
